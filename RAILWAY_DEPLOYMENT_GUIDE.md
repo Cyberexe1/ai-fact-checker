@@ -433,15 +433,51 @@ Error: Image size exceeded limit
 - Remove heavy dependencies (Playwright, spaCy, WeasyPrint)
 - Add `.dockerignore` to exclude unnecessary files
 
-**Issue 4: Health Check Failing**
+**Issue 4: Health Check Failing (Service Unavailable)**
 ```
 Error: 1/1 replicas never became healthy!
+Attempt #X failed with service unavailable
 ```
-**Solution**: 
-- Check Railway logs for startup errors
-- Verify environment variables are set correctly
-- Ensure MongoDB and Redis connections work
-- Use the improved `start.py` startup script
+
+**This means the app is crashing before it can respond to health checks.**
+
+**Debugging Steps**:
+
+1. **Check Railway Logs**:
+   - Go to Railway Dashboard → Your Service → "Logs"
+   - Look for Python errors, import failures, or crashes
+
+2. **Test with Minimal App**:
+   ```bash
+   # Temporarily use minimal app to test Railway setup
+   mv requirements.txt requirements-full.txt
+   mv requirements-test.txt requirements.txt
+   
+   # Update Procfile
+   echo "web: python minimal_app.py" > Procfile
+   
+   # Commit and push
+   git add . && git commit -m "Test minimal app" && git push
+   ```
+
+3. **Common Causes**:
+   - **Missing environment variables** (MongoDB URI, Redis URL, API keys)
+   - **Import errors** (missing dependencies)
+   - **Database connection failures** (MongoDB Atlas paused/unreachable)
+   - **Port binding issues** (app not listening on $PORT)
+
+4. **Check Environment Variables**:
+   - Railway Dashboard → Service → "Variables"
+   - Ensure all required variables are set:
+     - `MONGODB_URI`
+     - `REDIS_URL` 
+     - `GOOGLE_FACTCHECK_KEY`
+     - `OCR_SPACE_KEY`
+     - `OPENROUTER_API_KEY`
+
+5. **Test Endpoints** (once minimal app works):
+   - `GET /health` - Should return 200 OK
+   - `GET /env` - Shows which environment variables are set
 
 **Issue 4: Worker Not Processing Jobs**
 ```
