@@ -1,0 +1,38 @@
+# Ignore heavy files and folders
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git/
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+
+# Development files
+.env
+*.md
+test_*.py
+*_TEST_*
+frontend/
+storage/
+reports/
+
+# Large model files
+*.model
+*.bin
+*.pkl
+en_core_web_*

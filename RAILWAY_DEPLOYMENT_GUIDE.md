@@ -51,6 +51,8 @@ ai-fact-checker/
 - `railway.json` - Railway-specific deployment configuration
 - `runtime.txt` - Specifies Python version
 - `templates/report_template.html` - HTML report template
+- `requirements-minimal.txt` - Lightweight dependencies for Railway
+- `.dockerignore` - Excludes heavy files from build
 
 **Files NOT needed for deployment**:
 - ❌ `frontend/` folder (remove entirely)
@@ -123,26 +125,34 @@ rm -f URL_EXTRACTOR_TEST_REPORT.md
 # Keep only essential files
 ```
 
-### 1.4 Verify requirements.txt
+### 1.4 Optimize for Railway's 4GB Limit
 
-Your `requirements.txt` should contain only these API dependencies:
+**Problem**: Your current `requirements.txt` creates an 8.8GB image (too large for free tier)
+
+**Solution**: Use lightweight dependencies
+
+**Replace your `requirements.txt` with `requirements-minimal.txt`**:
+```bash
+# Rename current requirements
+mv requirements.txt requirements-full.txt
+
+# Use minimal requirements for Railway
+mv requirements-minimal.txt requirements.txt
 ```
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pymongo==4.6.0
-motor==3.3.2
-redis==5.0.1
-requests==2.31.0
-beautifulsoup4==4.12.2
-newspaper3k==0.2.8
-playwright==1.40.0
-spacy==3.7.2
-python-multipart==0.0.6
-Pillow==10.1.0
-weasyprint==60.2
-certifi==2023.11.17
-python-dotenv==1.0.0
-```
+
+**What's removed to save space**:
+- ❌ `playwright` (1.5GB) - Use newspaper3k + BeautifulSoup only
+- ❌ `spacy` + models (800MB) - Use basic text processing
+- ❌ `weasyprint` (500MB) - HTML reports only (no PDF)
+- ❌ `sentence-transformers` (400MB) - Use basic similarity
+- ❌ Heavy ML libraries
+
+**What's kept (lightweight)**:
+- ✅ FastAPI + uvicorn (web server)
+- ✅ MongoDB + Redis (databases)
+- ✅ newspaper3k + BeautifulSoup (web scraping)
+- ✅ Basic NLP and search
+- ✅ HTML report generation
 
 ---
 
@@ -414,7 +424,16 @@ Error: ServerSelectionTimeoutError
 - Verify IP whitelist includes 0.0.0.0/0
 - Ensure MongoDB cluster is not paused
 
-**Issue 3: Worker Not Processing Jobs**
+**Issue 3: Build Image Too Large (8.8GB > 4GB)**
+```
+Error: Image size exceeded limit
+```
+**Solution**: 
+- Use `requirements-minimal.txt` instead of `requirements.txt`
+- Remove heavy dependencies (Playwright, spaCy, WeasyPrint)
+- Add `.dockerignore` to exclude unnecessary files
+
+**Issue 4: Worker Not Processing Jobs**
 ```
 Error: Redis connection failed
 ```
