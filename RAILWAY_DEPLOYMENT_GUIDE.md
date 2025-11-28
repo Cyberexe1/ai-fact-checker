@@ -433,6 +433,16 @@ Error: Image size exceeded limit
 - Remove heavy dependencies (Playwright, spaCy, WeasyPrint)
 - Add `.dockerignore` to exclude unnecessary files
 
+**Issue 4: Health Check Failing**
+```
+Error: 1/1 replicas never became healthy!
+```
+**Solution**: 
+- Check Railway logs for startup errors
+- Verify environment variables are set correctly
+- Ensure MongoDB and Redis connections work
+- Use the improved `start.py` startup script
+
 **Issue 4: Worker Not Processing Jobs**
 ```
 Error: Redis connection failed

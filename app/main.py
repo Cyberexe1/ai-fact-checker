@@ -52,13 +52,13 @@ async def startup_event():
     else:
         print("❌ Failed to connect to database")
 
-# Include dashboard routes
-try:
-    from app.api.dashboard import router as dashboard_router
-    app.include_router(dashboard_router)
-    print("✅ Dashboard API routes loaded")
-except Exception as e:
-    print(f"⚠️  Dashboard routes failed to load: {e}")
+# Dashboard routes are optional for Railway deployment
+# try:
+#     from app.api.dashboard import router as dashboard_router
+#     app.include_router(dashboard_router)
+#     print("✅ Dashboard API routes loaded")
+# except Exception as e:
+#     print(f"⚠️  Dashboard routes failed to load: {e}")
 
 @app.get("/")
 async def root():
@@ -73,12 +73,31 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Detailed health check"""
-    return {
-        "status": "healthy",
-        "database": "connected",
-        "storage": settings.storage_mode,
-        "timestamp": datetime.utcnow().isoformat()
-    }
+    try:
+        # Test database connection
+        db_status = "connected" if test_connection() else "disconnected"
+        
+        # Test Redis connection
+        redis_status = "connected"
+        try:
+            if task_queue:
+                redis_conn.ping()
+        except:
+            redis_status = "disconnected"
+        
+        return {
+            "status": "healthy",
+            "database": db_status,
+            "redis": redis_status,
+            "storage": settings.storage_mode,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
 
 @app.post("/check", response_model=SubmissionResponse)
 async def check_claim(
